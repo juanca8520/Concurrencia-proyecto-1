@@ -22,7 +22,7 @@ defmodule Proyecto1 do
   {:ok, pidMutex} = Supervisor.start_link(children, strategy: :one_for_one)
 
   def call(caller) do
-    specificNumber = 20
+    specificNumber = 212
     counter_id = {User, {:id, 1}}
     lock = Mutex.await(MyMutex, counter_id)
     Counter.increment()
@@ -39,6 +39,7 @@ defmodule Proyecto1 do
         IO.inspect("[#{caller}] Keep Trying")
         Mutex.release(MyMutex, lock)
       else
+
         IO.inspect("[#{caller}] someone already won")
         Mutex.release(MyMutex, lock)
       end
@@ -65,12 +66,12 @@ defmodule Proyecto1 do
         Mutex.release(MyMutex, lock2)
 
       3 ->
-        lock3 = Mutex.await(MyMutex, phone2_id)
+        lock3 = Mutex.await(MyMutex, phone3_id)
         spawn(fn -> call(actual_caller) end)
         Mutex.release(MyMutex, lock3)
 
       4 ->
-        lock4 = Mutex.await(MyMutex, phone3_id)
+        lock4 = Mutex.await(MyMutex, phone4_id)
         spawn(fn -> call(actual_caller) end)
         Mutex.release(MyMutex, lock4)
     end
@@ -78,14 +79,13 @@ defmodule Proyecto1 do
 
   def generate_calls(actual_caller) do
     # Timer
-    Process.sleep(:rand.uniform(7000))
+    #Process.sleep(:rand.uniform(10))
     phone_assigned = :rand.uniform(4)
     accept_call(actual_caller + 1, phone_assigned)
 
-    if actual_caller < 100 do
+    if actual_caller < 2000000 do
       generate_calls(actual_caller + 1)
     end
   end
-
-  Proyecto1.generate_calls(0)
 end
+Proyecto1.generate_calls(0)
