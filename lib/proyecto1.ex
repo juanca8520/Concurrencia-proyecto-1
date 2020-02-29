@@ -20,8 +20,7 @@ defmodule Proyecto1 do
   ]
   {:ok, pidMutex} = Supervisor.start_link(children, strategy: :one_for_one)
 
-  def call (caller) do
-    specificNumber = 212
+  def call(caller,specificNumber) do
     counter_id = {User, {:id, 1}}
     lock = Mutex.await(MyMutex, counter_id)
     Counter.increment()
@@ -47,7 +46,7 @@ defmodule Proyecto1 do
 
   Counter.start_link(0)
 
-  def accept_call(actual_caller) do
+  def accept_call(actual_caller,specificNumber) do
     phone1_id = {User, {:id, 2}}
     phone2_id = {User, {:id, 3}}
     phone3_id = {User, {:id, 4}}
@@ -56,33 +55,34 @@ defmodule Proyecto1 do
     case phone_assigned do
       1 ->
         lock = Mutex.await(MyMutex, phone1_id)
-        spawn(fn -> call(actual_caller) end)
+        spawn(fn -> call(actual_caller,specificNumber) end)
         Mutex.release(MyMutex, lock)
 
       2 ->
         lock2 = Mutex.await(MyMutex, phone2_id)
-        spawn(fn -> call(actual_caller) end)
+        spawn(fn -> call(actual_caller,specificNumber) end)
         Mutex.release(MyMutex, lock2)
 
       3 ->
         lock3 = Mutex.await(MyMutex, phone3_id)
-        spawn(fn -> call(actual_caller) end)
+        spawn(fn -> call(actual_caller,specificNumber) end)
         Mutex.release(MyMutex, lock3)
 
       4 ->
         lock4 = Mutex.await(MyMutex, phone4_id)
-        spawn(fn -> call(actual_caller) end)
+        spawn(fn -> call(actual_caller,specificNumber) end)
         Mutex.release(MyMutex, lock4)
     end
   end
 
-  def generate_calls(actual_caller) do
+  def generate_calls(actual_caller,specificNumber) do
     # Timer
     #Process.sleep(:rand.uniform(10))
-    accept_call(actual_caller + 1)
-    if actual_caller < 2000000 do
-      generate_calls(actual_caller + 1)
+    accept_call(actual_caller + 1,specificNumber)
+    if actual_caller < 200 do
+      generate_calls(actual_caller + 1,specificNumber)
     end
   end
 end
-Proyecto1.generate_calls(0)
+
+Proyecto1.generate_calls(0,:rand.uniform(200))
