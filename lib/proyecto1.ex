@@ -18,10 +18,9 @@ defmodule Proyecto1 do
   children = [
     {Mutex, name: MyMutex}
   ]
-
   {:ok, pidMutex} = Supervisor.start_link(children, strategy: :one_for_one)
 
-  def call(caller) do
+  def call (caller) do
     specificNumber = 212
     counter_id = {User, {:id, 1}}
     lock = Mutex.await(MyMutex, counter_id)
@@ -48,13 +47,13 @@ defmodule Proyecto1 do
 
   Counter.start_link(0)
 
-  def accept_call(actual_caller, phone) do
+  def accept_call(actual_caller) do
     phone1_id = {User, {:id, 2}}
     phone2_id = {User, {:id, 3}}
     phone3_id = {User, {:id, 4}}
     phone4_id = {User, {:id, 5}}
-
-    case phone do
+    phone_assigned = :rand.uniform(4)
+    case phone_assigned do
       1 ->
         lock = Mutex.await(MyMutex, phone1_id)
         spawn(fn -> call(actual_caller) end)
@@ -80,9 +79,7 @@ defmodule Proyecto1 do
   def generate_calls(actual_caller) do
     # Timer
     #Process.sleep(:rand.uniform(10))
-    phone_assigned = :rand.uniform(4)
-    accept_call(actual_caller + 1, phone_assigned)
-
+    accept_call(actual_caller + 1)
     if actual_caller < 2000000 do
       generate_calls(actual_caller + 1)
     end
