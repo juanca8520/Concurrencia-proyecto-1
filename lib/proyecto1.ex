@@ -18,7 +18,7 @@ defmodule Proyecto1 do
   children = [
     {Mutex, name: MyMutex}
   ]
-  {:ok, pidMutex} = Supervisor.start_link(children, strategy: :one_for_one)
+  {:ok, __} = Supervisor.start_link(children, strategy: :one_for_one)
 
   def call(caller,specificNumber) do
     counter_id = {User, {:id, 1}}
