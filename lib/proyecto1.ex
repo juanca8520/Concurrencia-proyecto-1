@@ -18,20 +18,22 @@ defmodule Proyecto1 do
   children = [
     {Mutex, name: MyMutex}
   ]
+
   {:ok, pidMutex} = Supervisor.start_link(children, strategy: :one_for_one)
 
-  def call( caller) do
+  def call(caller) do
     specificNumber = 20
     counter_id = {User, {:id, 1}}
     lock = Mutex.await(MyMutex, counter_id)
     Counter.increment()
     currentCall = Counter.value()
+
     if specificNumber == currentCall do
       IO.inspect("[#{caller}] You are the winner")
       Mutex.release(MyMutex, lock)
-      #IO.inspect(Process.exit(pidMutex, :normal))
-      #IO.inspect(pidMutex)
-      #IO.inspect(counter_id)
+      # IO.inspect(Process.exit(pidMutex, :normal))
+      # IO.inspect(pidMutex)
+      # IO.inspect(counter_id)
     else
       if specificNumber > currentCall do
         IO.inspect("[#{caller}] Keep Trying")
@@ -44,39 +46,46 @@ defmodule Proyecto1 do
   end
 
   Counter.start_link(0)
-  def accept_call(actual_caller,phone) do
+
+  def accept_call(actual_caller, phone) do
     phone1_id = {User, {:id, 2}}
     phone2_id = {User, {:id, 3}}
     phone3_id = {User, {:id, 4}}
     phone4_id = {User, {:id, 5}}
+
     case phone do
-      1 -> 
+      1 ->
         lock = Mutex.await(MyMutex, phone1_id)
         spawn(fn -> call(actual_caller) end)
         Mutex.release(MyMutex, lock)
+
       2 ->
         lock2 = Mutex.await(MyMutex, phone2_id)
         spawn(fn -> call(actual_caller) end)
         Mutex.release(MyMutex, lock2)
+
       3 ->
         lock3 = Mutex.await(MyMutex, phone2_id)
         spawn(fn -> call(actual_caller) end)
         Mutex.release(MyMutex, lock3)
+
       4 ->
         lock4 = Mutex.await(MyMutex, phone3_id)
         spawn(fn -> call(actual_caller) end)
         Mutex.release(MyMutex, lock4)
     end
   end
-  
+
   def generate_calls(actual_caller) do
-    #Timer
+    # Timer
     Process.sleep(:rand.uniform(7000))
     phone_assigned = :rand.uniform(4)
-    accept_call(actual_caller+1,phone_assigned)
-    if actual_caller<100 do
-      generate_calls(actual_caller+1)
+    accept_call(actual_caller + 1, phone_assigned)
+
+    if actual_caller < 100 do
+      generate_calls(actual_caller + 1)
     end
   end
+
   Proyecto1.generate_calls(0)
 end
