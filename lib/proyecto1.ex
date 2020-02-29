@@ -1,34 +1,82 @@
+defmodule Counter do
+  use Agent
+
+  def start_link(initial_value) do
+    Agent.start_link(fn -> initial_value end, name: __MODULE__)
+  end
+
+  def value do
+    Agent.get(__MODULE__, & &1)
+  end
+
+  def increment do
+    Agent.update(__MODULE__, &(&1 + 1))
+  end
+end
+
 defmodule Proyecto1 do
-  @moduledoc """
-  Documentation for Proyecto1.
-  """
+  children = [
+    {Mutex, name: MyMutex}
+  ]
+  {:ok, pidMutex} = Supervisor.start_link(children, strategy: :one_for_one)
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Proyecto1.hello()
-      :world
-
-  """
-  def increment(actual_call, winner_number, telefone) do
-    lock = Mutex.await(MyMutex, telefone)
-    new_actual = {actual_call + 1, telefone}
-    IO.puts(new_actual)
-    new_actual
-    Mutex.release(MyMutex, lock)
+  def call( caller) do
+    specificNumber = 20
+    counter_id = {User, {:id, 1}}
+    lock = Mutex.await(MyMutex, counter_id)
+    Counter.increment()
+    currentCall = Counter.value()
+    if specificNumber == currentCall do
+      IO.inspect("[#{caller}] You are the winner")
+      Mutex.release(MyMutex, lock)
+      #IO.inspect(Process.exit(pidMutex, :normal))
+      #IO.inspect(pidMutex)
+      #IO.inspect(counter_id)
+    else
+      if specificNumber > currentCall do
+        IO.inspect("[#{caller}] Keep Trying")
+        Mutex.release(MyMutex, lock)
+      else
+        IO.inspect("[#{caller}] someone already won")
+        Mutex.release(MyMutex, lock)
+      end
+    end
   end
 
-
-  def call_center(winner_number, win) do
-    actual_call = {0, 0}
-
-    spawn(fn -> increment(actual_call, winner_number, 1) end)
-    spawn(fn -> increment(actual_call, winner_number, 2) end)
-    spawn(fn -> increment(actual_call, winner_number, 3) end)
-    spawn(fn -> increment(actual_call, winner_number, 4) end)
-
-    # No se como hacer las variables globales, toca preguntar mañana
+  Counter.start_link(0)
+  def accept_call(actual_caller,phone) do
+    phone1_id = {User, {:id, 2}}
+    phone2_id = {User, {:id, 3}}
+    phone3_id = {User, {:id, 4}}
+    phone4_id = {User, {:id, 5}}
+    case phone do
+      1 -> 
+        lock = Mutex.await(MyMutex, phone1_id)
+        spawn(fn -> call(actual_caller) end)
+        Mutex.release(MyMutex, lock)
+      2 ->
+        lock2 = Mutex.await(MyMutex, phone2_id)
+        spawn(fn -> call(actual_caller) end)
+        Mutex.release(MyMutex, lock2)
+      3 ->
+        lock3 = Mutex.await(MyMutex, phone2_id)
+        spawn(fn -> call(actual_caller) end)
+        Mutex.release(MyMutex, lock3)
+      4 ->
+        lock4 = Mutex.await(MyMutex, phone3_id)
+        spawn(fn -> call(actual_caller) end)
+        Mutex.release(MyMutex, lock4)
+    end
   end
+  
+  def generate_calls(actual_caller) do
+    #Timer
+    Process.sleep(:rand.uniform(7000))
+    phone_assigned = :rand.uniform(4)
+    accept_call(actual_caller+1,phone_assigned)
+    if actual_caller<100 do
+      generate_calls(actual_caller+1)
+    end
+  end
+  Proyecto1.generate_calls(0)
 end
